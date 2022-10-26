@@ -1,5 +1,18 @@
-# Dependecies
+# folders
 node_modules
 
-# Build directory
-dist
+# files
+package-lock.json
+dist/*.ts
+dist/*.spec.js
+dist/index.js
+.vscode/dialcode.code-snippets
+
+# playground files
+PLAYGROUND
+dist/types.js
+dist/html-colors.js
+dist/turtle.js
+dist/colors.js
+dist/shapes.js
+dist/steps.js
