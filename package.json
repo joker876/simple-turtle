@@ -2,7 +2,7 @@
     "name": "simple-turtle",
     "version": "1.2.3",
     "description": "A TypeScript implementation of the famous TurtleJS project based on LOGO.",
-    "main": "dist/index.min.js",
+    "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [
         "dist/*.js",
