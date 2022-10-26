@@ -5,7 +5,7 @@ import { LineCap } from './turtle';
 /**
  * The different types of steps the turtle is making.
  */
-export enum StepType {
+export enum TurtleStepType {
   Forward,
   Left,
   Right,
@@ -24,63 +24,63 @@ export enum StepType {
   SetLineCap,
 }
 
-export type Step =
+export type TurtleStep =
   | {
-      type: StepType.Forward;
+      type: TurtleStepType.Forward;
       args: [number];
     }
   | {
-      type: StepType.Hide;
+      type: TurtleStepType.Hide;
     }
   | {
-      type: StepType.Show;
+      type: TurtleStepType.Show;
     }
   | {
-      type: StepType.Left;
+      type: TurtleStepType.Left;
       args: [number];
     }
   | {
-      type: StepType.Right;
+      type: TurtleStepType.Right;
       args: [number];
     }
   | {
-      type: StepType.Goto;
+      type: TurtleStepType.Goto;
       args: [number, number];
     }
   | {
-      type: StepType.SetAngle;
+      type: TurtleStepType.SetAngle;
       args: [number];
     }
   | {
-      type: StepType.PenDown;
+      type: TurtleStepType.PenDown;
     }
   | {
-      type: StepType.PenUp;
+      type: TurtleStepType.PenUp;
     }
   | {
-      type: StepType.Reset;
+      type: TurtleStepType.Reset;
     }
   | {
-      type: StepType.Clear;
+      type: TurtleStepType.Clear;
     }
   | {
-      type: StepType.SetWidth;
+      type: TurtleStepType.SetWidth;
       args: [number];
     }
   | {
-      type: StepType.SetSpeed;
+      type: TurtleStepType.SetSpeed;
       args: [number];
     }
   | {
-      type: StepType.SetColor;
+      type: TurtleStepType.SetColor;
       args: [ColorResolvable];
     }
   | {
-      type: StepType.SetShape;
+      type: TurtleStepType.SetShape;
       args: [Vertex2D[]];
     }
   | {
-      type: StepType.SetLineCap;
+      type: TurtleStepType.SetLineCap;
       args: [LineCap];
     };
 
@@ -90,7 +90,7 @@ export interface TurtleEvents {
    *
    * @see {@link Turtle.stepByStep}
    */
-  step: (step: Step) => void;
+  step: (step: TurtleStep) => void;
   clear: () => void;
   hide: () => void;
   show: () => void;

@@ -7,7 +7,7 @@ import {
   BuiltInShapes,
   resizeShape,
 } from './shapes';
-import { TurtleEvents, StepType, Step } from './steps';
+import { TurtleEvents, TurtleStepType, TurtleStep } from './steps';
 
 /**
  * Clears a canvas.
@@ -173,7 +173,7 @@ export class Turtle extends EventEmitter {
   /**
    * The queue of steps do execute.
    */
-  private steps: Step[] = [];
+  private steps: TurtleStep[] = [];
 
   /**
    * The delay in ms between each steps.
@@ -235,24 +235,24 @@ export class Turtle extends EventEmitter {
    * @param step The step to execute
    * @returns {Turtle} For method chaining.
    */
-  private doStep(step: Step): Turtle {
+  private doStep(step: TurtleStep): Turtle {
     this.emit('step', step);
-    if (step.type === StepType.Goto) this.goto(...step.args);
-    if (step.type === StepType.SetAngle) this.setAngle(...step.args);
-    if (step.type === StepType.Forward) this.forward(...step.args);
-    if (step.type === StepType.Left) this.left(...step.args);
-    if (step.type === StepType.Right) this.right(...step.args);
-    if (step.type === StepType.Hide) this.hide();
-    if (step.type === StepType.Show) this.show();
-    if (step.type === StepType.PenDown) this.putPenDown();
-    if (step.type === StepType.PenUp) this.putPenUp();
-    if (step.type === StepType.Reset) this.reset();
-    if (step.type === StepType.Clear) this.clear();
-    if (step.type === StepType.SetColor) this.setColor(...step.args);
-    if (step.type === StepType.SetWidth) this.setWidth(...step.args);
-    if (step.type === StepType.SetSpeed) this.setSpeed(...step.args);
-    if (step.type === StepType.SetShape) this.setShape(...step.args);
-    if (step.type === StepType.SetLineCap) this.setLineCap(...step.args);
+    if (step.type === TurtleStepType.Goto) this.goto(...step.args);
+    if (step.type === TurtleStepType.SetAngle) this.setAngle(...step.args);
+    if (step.type === TurtleStepType.Forward) this.forward(...step.args);
+    if (step.type === TurtleStepType.Left) this.left(...step.args);
+    if (step.type === TurtleStepType.Right) this.right(...step.args);
+    if (step.type === TurtleStepType.Hide) this.hide();
+    if (step.type === TurtleStepType.Show) this.show();
+    if (step.type === TurtleStepType.PenDown) this.putPenDown();
+    if (step.type === TurtleStepType.PenUp) this.putPenUp();
+    if (step.type === TurtleStepType.Reset) this.reset();
+    if (step.type === TurtleStepType.Clear) this.clear();
+    if (step.type === TurtleStepType.SetColor) this.setColor(...step.args);
+    if (step.type === TurtleStepType.SetWidth) this.setWidth(...step.args);
+    if (step.type === TurtleStepType.SetSpeed) this.setSpeed(...step.args);
+    if (step.type === TurtleStepType.SetShape) this.setShape(...step.args);
+    if (step.type === TurtleStepType.SetLineCap) this.setLineCap(...step.args);
 
     return this;
   }
@@ -286,7 +286,7 @@ export class Turtle extends EventEmitter {
       this.emit('clear');
       clearContext(this.ctx);
       this.draw();
-    } else this.steps.push({ type: StepType.Clear });
+    } else this.steps.push({ type: TurtleStepType.Clear });
 
     return this;
   }
@@ -302,7 +302,7 @@ export class Turtle extends EventEmitter {
       this.hidden = true;
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.Hide });
+    } else this.steps.push({ type: TurtleStepType.Hide });
     return this;
   }
 
@@ -316,7 +316,7 @@ export class Turtle extends EventEmitter {
       this.emit('show');
       this.hidden = false;
       this.draw();
-    } else this.steps.push({ type: StepType.Show });
+    } else this.steps.push({ type: TurtleStepType.Show });
     return this;
   }
 
@@ -337,7 +337,7 @@ export class Turtle extends EventEmitter {
       this.setAngle(0);
       this.goto(0, 0);
       this.clear();
-    } else this.steps.push({ type: StepType.Reset });
+    } else this.steps.push({ type: TurtleStepType.Reset });
     return this;
   }
 
@@ -352,7 +352,7 @@ export class Turtle extends EventEmitter {
       this.emit('setShape', shape);
       this.shape = shape;
       this.draw();
-    } else this.steps.push({ type: StepType.SetShape, args: [shape] });
+    } else this.steps.push({ type: TurtleStepType.SetShape, args: [shape] });
     return this;
   }
 
@@ -371,7 +371,7 @@ export class Turtle extends EventEmitter {
       if (this.interval) clearInterval(this.interval);
 
       this.interval = setInterval(this.nextStep.bind(this), ms);
-    } else this.steps.push({ type: StepType.SetSpeed, args: [ms] });
+    } else this.steps.push({ type: TurtleStepType.SetSpeed, args: [ms] });
     return this;
   }
 
@@ -384,7 +384,7 @@ export class Turtle extends EventEmitter {
     if (this.inStep) {
       this.emit('putPenUp');
       this.penDown = false;
-    } else this.steps.push({ type: StepType.PenUp });
+    } else this.steps.push({ type: TurtleStepType.PenUp });
     return this;
   }
 
@@ -397,7 +397,7 @@ export class Turtle extends EventEmitter {
     if (this.inStep) {
       this.emit('putPenDown');
       this.penDown = true;
-    } else this.steps.push({ type: StepType.PenDown });
+    } else this.steps.push({ type: TurtleStepType.PenDown });
     return this;
   }
 
@@ -423,7 +423,7 @@ export class Turtle extends EventEmitter {
       this.color = convertToColor(col);
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.SetColor, args: [col] });
+    } else this.steps.push({ type: TurtleStepType.SetColor, args: [col] });
     return this;
   }
 
@@ -438,7 +438,7 @@ export class Turtle extends EventEmitter {
       this.width = size;
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.SetWidth, args: [size] });
+    } else this.steps.push({ type: TurtleStepType.SetWidth, args: [size] });
     return this;
   }
 
@@ -451,7 +451,7 @@ export class Turtle extends EventEmitter {
     if (this.inStep) {
       this.emit('setLineCap', cap);
       this.lineCap = cap;
-    } else this.steps.push({ type: StepType.SetLineCap, args: [cap] });
+    } else this.steps.push({ type: TurtleStepType.SetLineCap, args: [cap] });
     return this;
   }
 
@@ -466,7 +466,7 @@ export class Turtle extends EventEmitter {
       this.angle = ang;
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.SetAngle, args: [ang] });
+    } else this.steps.push({ type: TurtleStepType.SetAngle, args: [ang] });
     return this;
   }
 
@@ -481,7 +481,7 @@ export class Turtle extends EventEmitter {
       this.angle -= ang;
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.Left, args: [ang] });
+    } else this.steps.push({ type: TurtleStepType.Left, args: [ang] });
     return this;
   }
 
@@ -496,7 +496,7 @@ export class Turtle extends EventEmitter {
       this.angle += ang;
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.Right, args: [ang] });
+    } else this.steps.push({ type: TurtleStepType.Right, args: [ang] });
     return this;
   }
 
@@ -512,7 +512,7 @@ export class Turtle extends EventEmitter {
       this.position.y = y;
       this.restoreImageData();
       this.draw();
-    } else this.steps.push({ type: StepType.Goto, args: [x, y] });
+    } else this.steps.push({ type: TurtleStepType.Goto, args: [x, y] });
     return this;
   }
 
@@ -591,7 +591,7 @@ export class Turtle extends EventEmitter {
    */
   forward(distance: number): Turtle {
     if (!this.inStep) {
-      this.steps.push({ type: StepType.Forward, args: [distance] });
+      this.steps.push({ type: TurtleStepType.Forward, args: [distance] });
       return this;
     }
 
