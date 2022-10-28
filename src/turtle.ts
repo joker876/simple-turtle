@@ -120,6 +120,11 @@ export interface TurtleOptions {
     lineCap?: LineCap;
 
     /**
+     * The size modifier of the turtle.
+     */
+    turtleSizeModifier: number;
+
+    /**
      * If the turtle should automatically draw on creation.
      *
      * @default true
@@ -209,6 +214,12 @@ export class Turtle extends EventEmitter {
     private set lineCap(cap: LineCap) {
         this.ctx.lineCap = cap;
     }
+
+    /**
+     * The size modifier of the turtle.
+     */
+    
+    private readonly turtleSizeModifier: number = 1;
 
     /**
      * Wether or not the turtle is doing a step.
@@ -532,7 +543,7 @@ export class Turtle extends EventEmitter {
         this.saveImageData();
         if (this.hidden) return this;
 
-        const proportionalSize = Math.max(this.width / 2, 1);
+        const proportionalSize = Math.max(this.width / 2, 1) * this.turtleSizeModifier;
 
         const shape = rotateShape(
             resizeShape(this.shape, proportionalSize),
@@ -745,6 +756,7 @@ export class Turtle extends EventEmitter {
         if (options?.startAngle) this.angle = options.startAngle;
         if (options?.shape) this.shape = options.shape;
         if (options?.lineCap) this.lineCap = options.lineCap;
+        if (options?.turtleSizeModifier) this.turtleSizeModifier = options.turtleSizeModifier;
         if (options?.autoDraw) this.draw();
     }
 }
