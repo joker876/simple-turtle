@@ -201,6 +201,7 @@ export class Turtle extends EventEmitter {
      * The Color object representing the current color of the turtle.
      */
     private color: Color = new Color([255, 0, 255]);
+    private defaultColor: Color = new Color([255, 0, 255]);
 
     /**
      * The current width of the turtle's drawing.
@@ -351,7 +352,7 @@ export class Turtle extends EventEmitter {
             this.penDown = true;
             this.stepByStep = false;
             this.setWidth(1);
-            this.setColor([0, 0, 0]);
+            this.setColor(this.defaultColor);
             this.setAngle(0);
             this.goto(0, 0);
             this.clear();
@@ -749,8 +750,10 @@ export class Turtle extends EventEmitter {
 
         if (options?.hidden) this.hidden = options.hidden;
         if (options?.disableWrapping) this.wrap = !options.disableWrapping;
-        if (options?.defaultColor)
-            this.color = convertToColor(options.defaultColor);
+        if (options?.defaultColor) {
+            this.defaultColor = convertToColor(options.defaultColor)
+            this.color = this.defaultColor;
+        }
         if (options?.width) this.width = options.width;
         if (options?.startPostition) this.position = options.startPostition;
         if (options?.startAngle) this.angle = options.startAngle;
