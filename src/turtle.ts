@@ -125,19 +125,6 @@ export interface TurtleOptions {
     turtleSizeModifier?: number;
 
     /**
-<<<<<<< HEAD
-     * The fill color of the turtle.
-     */
-    turtleFillColor?: ColorResolvable | 'currentColor';
-
-    /**
-     * The border color of the turtle.
-     */
-    turtleBorderColor?: ColorResolvable | 'currentColor';
-
-    /**
-=======
->>>>>>> parent of 4234700 (add turtle's fill and border color customization options)
      * If the turtle should automatically draw on creation.
      *
      * @default true
@@ -580,23 +567,9 @@ export class Turtle extends EventEmitter {
         this.ctx.closePath();
 
         this.ctx.fillStyle = this.color.toHex();
-<<<<<<< HEAD
-        if (this.turtleFillColor !== 'currentColor') {
-            this.ctx.fillStyle = this.turtleFillColor.toHex();
-        }
-        this.ctx.fill();
-
-        this.ctx.lineWidth = Math.max(this.width / 2, 2);
-
-        this.ctx.strokeStyle = this.color.toHex();
-        if (this.turtleBorderColor !== 'currentColor') {
-            this.ctx.strokeStyle = this.turtleBorderColor.toHex();
-        }
-=======
         this.ctx.fill();
         this.ctx.lineWidth = Math.max(this.width / 4, 1);
         this.ctx.strokeStyle = 'black';
->>>>>>> parent of 4234700 (add turtle's fill and border color customization options)
         this.ctx.stroke();
         this.ctx.restore();
         return this;
