@@ -125,6 +125,7 @@ export interface TurtleOptions {
     turtleSizeModifier?: number;
 
     /**
+<<<<<<< HEAD
      * The fill color of the turtle.
      */
     turtleFillColor?: ColorResolvable | 'currentColor';
@@ -135,6 +136,8 @@ export interface TurtleOptions {
     turtleBorderColor?: ColorResolvable | 'currentColor';
 
     /**
+=======
+>>>>>>> parent of 4234700 (add turtle's fill and border color customization options)
      * If the turtle should automatically draw on creation.
      *
      * @default true
@@ -220,6 +223,7 @@ export class Turtle extends EventEmitter {
     /**
      * The current lineCap value of the Canvas.
      */
+
     private set lineCap(cap: LineCap) {
         this.ctx.lineCap = cap;
     }
@@ -227,17 +231,8 @@ export class Turtle extends EventEmitter {
     /**
      * The size modifier of the turtle.
      */
+    
     private readonly turtleSizeModifier: number = 1;
-
-    /**
-     * The fill color of the turtle.
-     */
-    private readonly turtleFillColor: Color | 'currentColor' = 'currentColor';
-
-    /**
-     * The border color of the turtle.
-     */
-    private readonly turtleBorderColor: Color | 'currentColor' = new Color([0, 0, 0]);
 
     /**
      * Wether or not the turtle is doing a step.
@@ -585,6 +580,7 @@ export class Turtle extends EventEmitter {
         this.ctx.closePath();
 
         this.ctx.fillStyle = this.color.toHex();
+<<<<<<< HEAD
         if (this.turtleFillColor !== 'currentColor') {
             this.ctx.fillStyle = this.turtleFillColor.toHex();
         }
@@ -596,6 +592,11 @@ export class Turtle extends EventEmitter {
         if (this.turtleBorderColor !== 'currentColor') {
             this.ctx.strokeStyle = this.turtleBorderColor.toHex();
         }
+=======
+        this.ctx.fill();
+        this.ctx.lineWidth = Math.max(this.width / 4, 1);
+        this.ctx.strokeStyle = 'black';
+>>>>>>> parent of 4234700 (add turtle's fill and border color customization options)
         this.ctx.stroke();
         this.ctx.restore();
         return this;
@@ -782,24 +783,7 @@ export class Turtle extends EventEmitter {
         if (options?.startAngle) this.angle = options.startAngle;
         if (options?.shape) this.shape = options.shape;
         if (options?.lineCap) this.lineCap = options.lineCap;
-        if (options?.autoDraw) this.draw();
-        //turtle appearance
         if (options?.turtleSizeModifier) this.turtleSizeModifier = options.turtleSizeModifier;
-        if (options?.turtleFillColor) {
-            if (options?.turtleFillColor == 'currentColor') {
-                this.turtleFillColor = options.turtleFillColor;
-            }
-            else {
-                this.turtleFillColor = convertToColor(options.turtleFillColor);
-            }
-        }
-        if (options?.turtleBorderColor) {
-            if (options?.turtleBorderColor == 'currentColor') {
-                this.turtleBorderColor = options.turtleBorderColor;
-            }
-            else {
-                this.turtleBorderColor = convertToColor(options.turtleBorderColor);
-            }
-        }
+        if (options?.autoDraw) this.draw();
     }
 }
