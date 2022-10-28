@@ -122,17 +122,17 @@ export interface TurtleOptions {
     /**
      * The size modifier of the turtle.
      */
-    turtleSizeModifier: number;
+    turtleSizeModifier?: number;
 
     /**
      * The fill color of the turtle.
      */
-    turtleFillColor: ColorResolvable | 'currentColor';
+    turtleFillColor?: ColorResolvable | 'currentColor';
 
     /**
      * The border color of the turtle.
      */
-    turtleBorderColor: ColorResolvable | 'currentColor';
+    turtleBorderColor?: ColorResolvable | 'currentColor';
 
     /**
      * If the turtle should automatically draw on creation.
