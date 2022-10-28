@@ -118,6 +118,13 @@ export interface TurtleOptions {
      * @default 'round'
      */
     lineCap?: LineCap;
+
+    /**
+     * If the turtle should automatically draw on creation.
+     *
+     * @default true
+     */
+    autoDraw?: boolean;
 }
 
 export interface Turtle {
@@ -738,5 +745,6 @@ export class Turtle extends EventEmitter {
         if (options?.startAngle) this.angle = options.startAngle;
         if (options?.shape) this.shape = options.shape;
         if (options?.lineCap) this.lineCap = options.lineCap;
+        if (options?.autoDraw) this.draw();
     }
 }
