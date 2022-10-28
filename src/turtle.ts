@@ -586,15 +586,15 @@ export class Turtle extends EventEmitter {
 
         this.ctx.fillStyle = this.color.toHex();
         if (this.turtleFillColor !== 'currentColor') {
-            this.turtleFillColor.toHex()
+            this.ctx.fillStyle = this.turtleFillColor.toHex();
         }
         this.ctx.fill();
 
         this.ctx.lineWidth = Math.max(this.width / 2, 2);
-        
+
         this.ctx.strokeStyle = this.color.toHex();
         if (this.turtleBorderColor !== 'currentColor') {
-            this.turtleBorderColor.toHex()
+            this.ctx.strokeStyle = this.turtleBorderColor.toHex();
         }
         this.ctx.stroke();
         this.ctx.restore();
