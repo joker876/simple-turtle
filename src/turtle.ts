@@ -226,8 +226,7 @@ export class Turtle extends EventEmitter {
      * Wether or not the turtle is doing a step.
      */
     private get inStep(): boolean {
-        if (!this.stepByStep) return true;
-        return this.step;
+        return !this.stepByStep || this.step;
     }
 
     /**
