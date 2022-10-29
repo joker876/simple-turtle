@@ -497,7 +497,7 @@ export class Turtle extends EventEmitter {
     left(ang: number): Turtle {
         if (this.inStep) {
             this.emit('left', ang);
-            this.angle -= ang;
+            this.angle += ang;
             this.restoreImageData();
             this.draw();
         } else this.steps.push({ type: TurtleStepType.Left, args: [ang] });
@@ -512,7 +512,7 @@ export class Turtle extends EventEmitter {
     right(ang: number): Turtle {
         if (this.inStep) {
             this.emit('right', ang);
-            this.angle += ang;
+            this.angle -= ang;
             this.restoreImageData();
             this.draw();
         } else this.steps.push({ type: TurtleStepType.Right, args: [ang] });
