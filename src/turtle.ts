@@ -601,20 +601,8 @@ export class Turtle extends EventEmitter {
         if (this.preDrawData) this.ctx.putImageData(this.preDrawData, 0, 0);
         return this;
     }
-
-    /**
-     * Makes the turtle walk forward and draw a line.
-     *
-     * @param distance The distance in pixels for the turtle to travel.
-     * @returns {Turtle} For method chaining.
-     */
-    forward(distance: number): Turtle {
-        if (!this.inStep) {
-            this.steps.push({ type: TurtleStepType.Forward, args: [distance] });
-            return this;
-        }
-
-        this.emit('forward', distance);
+    
+    private _doStraightLine(distance: number) {
         this.restoreImageData();
         this.ctx.save();
         centerCoordinates(this.ctx);
@@ -671,6 +659,37 @@ export class Turtle extends EventEmitter {
         this.ctx.restore();
         this.saveImageData();
         this.goto(newX, newY);
+    }
+    /**
+     * Makes the turtle walk forward and draw a line.
+     *
+     * @param distance The distance in pixels for the turtle to travel.
+     * @returns {Turtle} For method chaining.
+     */
+    forward(distance: number): Turtle {
+        if (!this.inStep) {
+            this.steps.push({ type: TurtleStepType.Forward, args: [distance] });
+            return this;
+        }
+
+        this.emit('forward', distance);
+        this._doStraightLine(distance);
+        return this;
+    }
+    /**
+     * Makes the turtle walk backward and draw a line.
+     *
+     * @param distance The distance in pixels for the turtle to travel.
+     * @returns {Turtle} For method chaining.
+     */
+    backward(distance: number): Turtle {
+        if (!this.inStep) {
+            this.steps.push({ type: TurtleStepType.Backward, args: [distance] });
+            return this;
+        }
+
+        this.emit('backward', distance);
+        this._doStraightLine(-distance);
         return this;
     }
 

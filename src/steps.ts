@@ -7,6 +7,7 @@ import { LineCap } from './turtle';
  */
 export enum TurtleStepType {
     Forward,
+    Backward,
     Left,
     Right,
     SetAngle,
@@ -27,6 +28,10 @@ export enum TurtleStepType {
 export type TurtleStep =
     | {
         type: TurtleStepType.Forward;
+        args: [number];
+    }
+    | {
+        type: TurtleStepType.Backward;
         args: [number];
     }
     | {
@@ -107,4 +112,5 @@ export interface TurtleEvents {
     right: (angle: number) => void;
     goto: (x: number, y: number) => void;
     forward: (distance: number) => void;
+    backward: (distance: number) => void;
 }
