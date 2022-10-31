@@ -347,7 +347,6 @@ export class Turtle extends EventEmitter {
         if (this.inStep) {
             this.emit('reset');
             this.hidden = false;
-            this.wrap = true;
             this.penDown = true;
             this.stepByStep = false;
             this.setWidth(1);
