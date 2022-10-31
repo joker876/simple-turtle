@@ -766,7 +766,7 @@ export class Turtle extends EventEmitter {
         this.lineCap = 'round';
 
         if (options?.hidden) this.hidden = options.hidden;
-        if (options?.disableWrapping) this.wrap = !options.disableWrapping;
+        if (options?.disableWrapping) this.wrap = false;
         if (options?.defaultColor) {
             this.defaultColor = convertToColor(options.defaultColor)
             this.color = this.defaultColor;
