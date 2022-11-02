@@ -346,11 +346,11 @@ export class Turtle extends EventEmitter {
         this._hidden = false;
         this._isPenDown = true;
         this._stepByStep = false;
-        this.setWidth(1);
-        this.setColor(this._defaultColor);
-        this.setAngle(0);
-        this.goto(0, 0);
-        this.clear();
+        this._setWidth(1);
+        this._setColor(this._defaultColor);
+        this._setAngle(0);
+        this._goto(0, 0);
+        this._clear();
     }
 
     /**
@@ -623,7 +623,7 @@ export class Turtle extends EventEmitter {
         if (this._isPenDown) this.ctx.stroke();
         this.ctx.restore();
         this.saveImageData();
-        this.goto(newX, newY);
+        this._goto(newX, newY);
     }
     /**
      * Makes the turtle walk forward and draw a line.
@@ -745,22 +745,22 @@ export class Turtle extends EventEmitter {
         const w = this.ctx.canvas.width;
         const h = this.ctx.canvas.height;
 
-        this.setColor('grey');
-        this.setWidth(2);
+        this._setColor('grey');
+        this._setWidth(2);
 
         for (let i = 1; i < separations; i++) {
-            this.setAngle(90);
-            this.goto(-(w / 2), h - (h / separations) * i - h / 2);
-            this.forward(w);
-            this.setAngle(180);
-            this.goto(w - (w / separations) * i - w / 2, h / 2);
-            this.forward(h);
+            this._setAngle(90);
+            this._goto(-(w / 2), h - (h / separations) * i - h / 2);
+            this._forward(w);
+            this._setAngle(180);
+            this._goto(w - (w / separations) * i - w / 2, h / 2);
+            this._forward(h);
         }
 
-        this.setAngle(oldAngle);
-        this.setColor(oldColor);
-        this.setWidth(oldWidth);
-        this.goto(oldX, oldY);
+        this._setAngle(oldAngle);
+        this._setColor(oldColor);
+        this._setWidth(oldWidth);
+        this._goto(oldX, oldY);
         this.ctx.restore();
         this._step = false;
         return this;
