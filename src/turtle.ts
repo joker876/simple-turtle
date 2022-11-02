@@ -25,15 +25,6 @@ function centerCoordinates(ctx: CanvasRenderingContext2D): void {
 }
 
 /**
- * The different styles of the end caps for drawn lines.
- *
- * @note The value "round" and "square" make the lines slightly longer.
- *
- * @see https://www.w3schools.com/TAgs/canvas_linecap.asp
- */
-export type LineCap = 'butt' | 'round' | 'square';
-
-/**
  * Represents a remapping of method's names when exposing them onto a JavaScript object.
  *
  * @see {@link Turtle.expose}
@@ -117,7 +108,7 @@ export interface TurtleOptions {
      *
      * @default 'round'
      */
-    lineCap?: LineCap;
+    lineCap?: CanvasLineCap;
 
     /**
      * The size modifier of the turtle.
@@ -464,8 +455,8 @@ export class Turtle extends EventEmitter {
      *
      * @returns {Turtle} For method chaining.
      */
-    setLineCap(cap: LineCap): Turtle {
         if (this.inStep) {
+    setLineCap(cap: CanvasLineCap): Turtle {
             this.emit('setLineCap', cap);
             this.lineCap = cap;
         } else this.steps.push({ type: TurtleStepType.SetLineCap, args: [cap] });
