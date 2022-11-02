@@ -1,4 +1,4 @@
-import { ColorResolvable } from './colors';
+import { Color, ColorResolvable } from './colors';
 import { Vertex2D } from './shapes';
 
 /**
@@ -101,9 +101,10 @@ export interface TurtleEvents {
     reset: () => void;
     setShape: (shape: Vertex2D[]) => void;
     setSpeed: (ms: number) => void;
-    putPenUp: () => void;
-    putPenDown: () => void;
-    setColor: (color: ColorResolvable) => void;
+    penUp: () => void;
+    penDown: () => void;
+    penToggle: (newValue: boolean) => void;
+    setColor: (color: Color) => void;
     setWidth: (width: number) => void;
     setLineCap: (cap: CanvasLineCap) => void;
     setAngle: (angle: number) => void;

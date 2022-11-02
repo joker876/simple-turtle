@@ -32,12 +32,14 @@ function centerCoordinates(ctx: CanvasRenderingContext2D): void {
 
 export interface ExposeRemap {
     forward?: string;
+    backward?: string;
     left?: string;
     right?: string;
     hide?: string;
     show?: string;
-    putPenUp?: string;
-    putPenDown?: string;
+    penUp?: string;
+    penDown?: string;
+    penToggle?: string;
     clear?: string;
     reset?: string;
     goto?: string;
@@ -143,92 +145,76 @@ export class Turtle extends EventEmitter {
     /**
      * Wether or not the turtle is hidden.
      */
-    private hidden: boolean = false;
+    private _hidden: boolean = false;
 
     /**
      * Wether or not to wrap the turtle around the canvas.
      * The turtle goes around when overflowing.
      */
-    private wrap: boolean = true;
+    private _wrap: boolean = true;
 
     /**
      * Determines if the turtle draws on the canvas or not.
      */
-    private penDown: boolean = true;
+    private _isPenDown: boolean = true;
 
     /**
      * Canvas Image data before drawing the turtle.
      */
-    private preDrawData?: ImageData;
+    private _preDrawData?: ImageData;
 
     /**
      * Wether or not the Turtle is in Step by Step mode.
      * Enabled using {@link Turtle.setSpeed}.
      */
-    private stepByStep: boolean = false;
+    private _stepByStep: boolean = false;
 
     /**
-     * Wether or not the Turtle is currently perfoming a step.
-     * Use `.inStep` instead.
+     * Whether or not the Turtle is currently perfoming a step.
+     * Use {@link Turtle.isInStep} instead.
      */
-    private step: boolean = false;
+    private _step: boolean = false;
 
     /**
      * The queue of steps do execute.
      */
-    private steps: TurtleStep[] = [];
+    private _steps: TurtleStep[] = [];
 
     /**
      * The delay in ms between each steps.
      */
-    speed?: number;
+    private _speed?: number;
 
     /**
      * The timer identifier for the step interval.
      */
-    private interval?: ReturnType<typeof setInterval>;
+    private _interval?: NodeJS.Timer;
 
     /**
      * The Color object representing the current color of the turtle.
      */
-    private color: Color = new Color([255, 0, 255]);
-    private defaultColor: Color = new Color([255, 0, 255]);
+    private _color: Color = new Color([255, 0, 255]);
+    private _defaultColor: Color = new Color([255, 0, 255]);
 
     /**
      * The current width of the turtle's drawing.
      */
-    private width: number = 1;
-
-    /**
-     * The current lineCap value of the Canvas.
-     */
-
-    private set lineCap(cap: LineCap) {
-        this.ctx.lineCap = cap;
-    }
+    private _width: number = 1;
 
     /**
      * The size modifier of the turtle.
      */
-    
-    private readonly turtleSizeModifier: number = 1;
-
-    /**
-     * Wether or not the turtle is doing a step.
-     */
-    private get inStep(): boolean {
-        return !this.stepByStep || this.step;
-    }
+    private readonly _turtleSizeModifier: number = 1;
 
     /**
      * The current X/Y position of the turtle on the canvas.
      */
-    private position: Vertex2D = { x: 0, y: 0 };
+    private _position: Vertex2D = { x: 0, y: 0 };
 
     /**
      * The current angle of the turtle.
      */
-    private angle: number = 0;
+    private _angle: number = 0;
 
     /**
      * The shape of the turtle which is drawn with the `.draw` method.
@@ -236,13 +222,20 @@ export class Turtle extends EventEmitter {
      * Represented by an array of 2D vertices (X/Y coordinates) defining
      * the boundaries of the shape.
      */
-    private shape: Vertex2D[] = BuiltInShapes.Default;
+    private _shape: Vertex2D[] = BuiltInShapes.Default;
+    
+    /**
+     * Wether or not the turtle is doing a step.
+     */
+    get isInStep(): boolean {
+        return !this._stepByStep || this._step;
+    }
 
     /**
      * Execute a certain step.
      *
      * @param step The step to execute
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     private doStep(step: TurtleStep): Turtle {
         this.emit('step', step);
@@ -253,8 +246,8 @@ export class Turtle extends EventEmitter {
         if (step.type === TurtleStepType.Right) this.right(...step.args);
         if (step.type === TurtleStepType.Hide) this.hide();
         if (step.type === TurtleStepType.Show) this.show();
-        if (step.type === TurtleStepType.PenDown) this.putPenDown();
-        if (step.type === TurtleStepType.PenUp) this.putPenUp();
+        if (step.type === TurtleStepType.PenDown) this.penDown();
+        if (step.type === TurtleStepType.PenUp) this.penUp();
         if (step.type === TurtleStepType.Reset) this.reset();
         if (step.type === TurtleStepType.Clear) this.clear();
         if (step.type === TurtleStepType.SetColor) this.setColor(...step.args);
@@ -262,24 +255,23 @@ export class Turtle extends EventEmitter {
         if (step.type === TurtleStepType.SetSpeed) this.setSpeed(...step.args);
         if (step.type === TurtleStepType.SetShape) this.setShape(...step.args);
         if (step.type === TurtleStepType.SetLineCap) this.setLineCap(...step.args);
-
         return this;
     }
 
     /**
      * Execute the next step in the queue. Call this method to skip the interval.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     private nextStep(): Turtle {
-        const step = this.steps.shift();
+        const step = this._steps.shift();
         if (step) {
-            this.step = true;
+            this._step = true;
             this.doStep(step);
-            this.step = false;
-        } else if (this.interval) {
-            clearInterval(this.interval);
-            this.interval = undefined;
+            this._step = false;
+        } else if (this._interval) {
+            clearInterval(this._interval);
+            this._interval = undefined;
         }
 
         return this;
@@ -288,323 +280,307 @@ export class Turtle extends EventEmitter {
     /**
      * Wipes out the canvas.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     clear(): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._clear();
             this.emit('clear');
-            clearContext(this.ctx);
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.Clear });
+        } else this._steps.push({ type: TurtleStepType.Clear });
 
         return this;
+    }
+    private _clear() {
+        clearContext(this.ctx);
+        this.drawTurtle();
     }
 
     /**
      * Hide the turtle.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     hide(): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._hide();
             this.emit('hide');
-            this.hidden = true;
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.Hide });
+        } else this._steps.push({ type: TurtleStepType.Hide });
         return this;
+    }
+    private _hide() {
+        this._hidden = true;
+        this.restoreImageData();
+        this.drawTurtle();
     }
 
     /**
      * Show the turtle.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     show(): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._show();
             this.emit('show');
-            this.hidden = false;
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.Show });
+        } else this._steps.push({ type: TurtleStepType.Show });
         return this;
+    }
+    private _show() {
+        this._hidden = false;
+        this.drawTurtle();
     }
 
     /**
      * Reset the turtle and the canvas.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     reset(): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._reset();
             this.emit('reset');
-            this.hidden = false;
-            this.penDown = true;
-            this.stepByStep = false;
-            this.setWidth(1);
-            this.setColor(this.defaultColor);
-            this.setAngle(0);
-            this.goto(0, 0);
-            this.clear();
-        } else this.steps.push({ type: TurtleStepType.Reset });
+        } else this._steps.push({ type: TurtleStepType.Reset });
         return this;
+    }
+    private _reset() {
+        this._hidden = false;
+        this._isPenDown = true;
+        this._stepByStep = false;
+        this.setWidth(1);
+        this.setColor(this._defaultColor);
+        this.setAngle(0);
+        this.goto(0, 0);
+        this.clear();
     }
 
     /**
      * Change the shape used to draw the turtle.
      *
      * @param shape An array of X/Y coordinates.
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     setShape(shape: Vertex2D[]): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._setShape(shape);
             this.emit('setShape', shape);
-            this.shape = shape;
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.SetShape, args: [shape] });
+        } else this._steps.push({ type: TurtleStepType.SetShape, args: [shape] });
         return this;
+    }
+    private _setShape(shape: Vertex2D[]): void {
+        this._shape = shape;
+        this.drawTurtle();
     }
 
     /**
      * Enable Step by Step mode and set the delay in ms between each steps.
      *
      * @param ms The delay between each steps
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     setSpeed(ms: number): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._setSpeed(ms);
             this.emit('setSpeed', ms);
-            this.stepByStep = ms > 0;
-            this.speed = ms;
-
-            if (this.interval) clearInterval(this.interval);
-
-            this.interval = setInterval(this.nextStep.bind(this), ms);
-        } else this.steps.push({ type: TurtleStepType.SetSpeed, args: [ms] });
+        } else this._steps.push({ type: TurtleStepType.SetSpeed, args: [ms] });
         return this;
+    }
+    private _setSpeed(ms: number): void {
+        this._stepByStep = ms > 0;
+        this._speed = ms;
+
+        if (this._interval) clearInterval(this._interval);
+
+        this._interval = setInterval(this.nextStep.bind(this), this._speed);
     }
 
     /**
      * Puts the pen up to stop drawing.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    putPenUp(): Turtle {
-        if (this.inStep) {
-            this.emit('putPenUp');
-            this.penDown = false;
-        } else this.steps.push({ type: TurtleStepType.PenUp });
+    penUp(): Turtle {
+        if (this.isInStep) {
+            this._penUp();
+            this.emit('penUp');
+        } else this._steps.push({ type: TurtleStepType.PenUp });
         return this;
+    }
+    private _penUp(): void {
+        this._isPenDown = false;
     }
 
     /**
      * Puts the pen down to start drawing.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    putPenDown(): Turtle {
-        if (this.inStep) {
-            this.emit('putPenDown');
-            this.penDown = true;
-        } else this.steps.push({ type: TurtleStepType.PenDown });
+    penDown(): Turtle {
+        if (this.isInStep) {
+            this._penDown();
+            this.emit('penDown');
+        } else this._steps.push({ type: TurtleStepType.PenDown });
         return this;
+    }
+    private _penDown(): void {
+        this._isPenDown = true;
     }
 
     /**
      * Inverts the position of the pen.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    invertPen(): Turtle {
-        this.penDown = !this.penDown;
+    penToggle(): Turtle {
+        if (this.isInStep) {
+            this._penToggle();
+            this.emit('penToggle', this._isPenDown);
+        } else this._steps.push({ type: TurtleStepType.PenDown });
         return this;
+    }
+    private _penToggle(): void {
+        this._isPenDown = !this._isPenDown;
     }
 
     /**
      * Sets a new color to be used for drawing.
      *
-     * @param col Any value resolvable to a color.
-     * @returns {Turtle} For method chaining.
+     * @param color Any value resolvable to a color.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    setColor(col: ColorResolvable): Turtle {
-        if (this.inStep) {
-            this.emit('setColor', col);
-            this.color = convertToColor(col);
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.SetColor, args: [col] });
+    setColor(color: ColorResolvable): Turtle {
+        if (this.isInStep) {
+            this._setColor(color);
+            this.emit('setColor', this._color);
+        } else this._steps.push({ type: TurtleStepType.SetColor, args: [color] });
         return this;
+    }
+    private _setColor(color: ColorResolvable): void {
+        this._color = convertToColor(color);
+        this.restoreImageData();
+        this.drawTurtle();
     }
 
     /**
      * Sets a new width to be used for drawing lines.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     setWidth(size: number): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._setWidth(size);
             this.emit('setWidth', size);
-            this.width = size;
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.SetWidth, args: [size] });
+        } else this._steps.push({ type: TurtleStepType.SetWidth, args: [size] });
         return this;
+    }
+    private _setWidth(size: number): void {
+        this._width = size;
+        this.restoreImageData();
+        this.drawTurtle();
     }
 
     /**
      * Change the line cap style of the lines being drawn.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-        if (this.inStep) {
     setLineCap(cap: CanvasLineCap): Turtle {
+        if (this.isInStep) {
+            this._setLineCap(cap);
             this.emit('setLineCap', cap);
-            this.lineCap = cap;
-        } else this.steps.push({ type: TurtleStepType.SetLineCap, args: [cap] });
+        } else this._steps.push({ type: TurtleStepType.SetLineCap, args: [cap] });
         return this;
+    }
+    private _setLineCap(cap: CanvasLineCap): void {
+        this._lineCap = cap;
     }
 
     /**
      * Set the turtle to this angle.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    setAngle(ang: number): Turtle {
-        if (this.inStep) {
-            this.emit('setAngle', ang);
-            this.angle = ang;
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.SetAngle, args: [ang] });
+    setAngle(degrees: number): Turtle {
+        if (this.isInStep) {
+            this._setAngle(degrees);
+            this.emit('setAngle', degrees);
+        } else this._steps.push({ type: TurtleStepType.SetAngle, args: [degrees] });
         return this;
+    }
+    private _setAngle(degrees: number): void {
+        this._angle = degrees;
+        this.restoreImageData();
+        this.drawTurtle();
     }
 
     /**
      * Rotate the turtle on the left.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    left(ang: number): Turtle {
-        if (this.inStep) {
-            this.emit('left', ang);
-            this.angle -= ang;
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.Left, args: [ang] });
+    left(degrees: number): Turtle {
+        if (this.isInStep) {
+            this._left(degrees);
+            this.emit('left', degrees);
+        } else this._steps.push({ type: TurtleStepType.Left, args: [degrees] });
         return this;
+    }
+    private _left(degrees: number): void {
+        this._angle -= degrees;
+        this.restoreImageData();
+        this.drawTurtle();
     }
 
     /**
      * Rotate the turtle on the right.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
-    right(ang: number): Turtle {
-        if (this.inStep) {
-            this.emit('right', ang);
-            this.angle += ang;
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.Right, args: [ang] });
+    right(degrees: number): Turtle {
+        if (this.isInStep) {
+            this._right(degrees);
+            this.emit('right', degrees);
+        } else this._steps.push({ type: TurtleStepType.Right, args: [degrees] });
         return this;
+    }
+    private _right(degrees: number): void {
+        this._angle -= degrees;
+        this.restoreImageData();
+        this.drawTurtle();
     }
 
     /**
      * Sends the turtle at a new position.
      *
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     goto(x: number, y: number): Turtle {
-        if (this.inStep) {
+        if (this.isInStep) {
+            this._goto(x, y);
             this.emit('goto', x, y);
-            this.position.x = x;
-            this.position.y = y;
-            this.restoreImageData();
-            this.draw();
-        } else this.steps.push({ type: TurtleStepType.Goto, args: [x, y] });
+        } else this._steps.push({ type: TurtleStepType.Goto, args: [x, y] });
         return this;
     }
-
-    /**
-     * Draws the turtle (The arrow).
-     *
-     * @returns {Turtle} For method chaining.
-     */
-    draw(): Turtle {
-        this.saveImageData();
-        if (this.hidden) return this;
-
-        const proportionalSize = Math.max(this.width / 2, 1) * this.turtleSizeModifier;
-
-        const shape = rotateShape(
-            resizeShape(this.shape, proportionalSize),
-            this.angle
-        );
-
-        const x = this.position.x;
-        const y = this.position.y;
-
-        this.ctx.save();
-        centerCoordinates(this.ctx);
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(x, y);
-
-        for (let i = 0; i < shape.length; i++) {
-            const vertex = shape[i];
-            if (vertex) this.ctx.lineTo(x + vertex.x, y + vertex.y);
-        }
-
-        this.ctx.closePath();
-
-        this.ctx.fillStyle = this.color.toHex();
-        this.ctx.fill();
-        this.ctx.lineWidth = Math.max(this.width / 4, 1);
-        this.ctx.strokeStyle = 'black';
-        this.ctx.stroke();
-        this.ctx.restore();
-        return this;
-    }
-
-    /**
-     * Saves the current image into {@link Turtle.preDrawData}.
-     *
-     * @returns {Turtle} For method chaining.
-     */
-    saveImageData(): Turtle {
-        this.preDrawData = this.ctx.getImageData(
-            0,
-            0,
-            this.ctx.canvas.width,
-            this.ctx.canvas.height
-        );
-
-        return this;
-    }
-
-    /**
-     * Restores the image from {@link Turtle.preDrawData}.
-     *
-     * @returns {Turtle} For method chaining.
-     */
-    restoreImageData(): Turtle {
-        if (this.preDrawData) this.ctx.putImageData(this.preDrawData, 0, 0);
-        return this;
+    private _goto(x: number, y: number): void {
+        this._position.x = x;
+        this._position.y = y;
+        this.restoreImageData();
+        this.drawTurtle();
     }
     
     private _doStraightLine(distance: number) {
         this.restoreImageData();
         this.ctx.save();
         centerCoordinates(this.ctx);
-        this.ctx.lineWidth = this.width;
-        this.ctx.strokeStyle = this.color.toRGBA();
-        if (this.penDown) this.ctx.beginPath();
-        const cosAngle = Math.cos(degToRad(this.angle));
-        const sinAngle = Math.sin(degToRad(this.angle));
+        this.ctx.lineWidth = this._width;
+        this.ctx.strokeStyle = this._color.toRGBA();
+        if (this._isPenDown) this.ctx.beginPath();
+        const cosAngle = Math.cos(degToRad(this._angle));
+        const sinAngle = Math.sin(degToRad(this._angle));
         const w = this.ctx.canvas.width / 2;
         const h = this.ctx.canvas.height / 2;
 
-        let x = this.position.x;
-        let y = this.position.y;
+        let x = this._position.x;
+        let y = this._position.y;
         let newX = x + sinAngle * distance;
         let newY = y + cosAngle * distance;
 
@@ -617,7 +593,7 @@ export class Turtle extends EventEmitter {
             this.ctx.moveTo(x, y);
             if (
                 // Crossing X boundaries
-                this.wrap &&
+                this._wrap &&
                 Math.abs(newX) > w &&
                 distanceToEdgeX <= distanceToEdgeY
             ) {
@@ -628,7 +604,7 @@ export class Turtle extends EventEmitter {
                 distance -= distanceToEdgeX;
             } else if (
                 // Crossing Y boundaries
-                this.wrap &&
+                this._wrap &&
                 Math.abs(newY) > h &&
                 distanceToEdgeX >= distanceToEdgeY
             ) {
@@ -644,7 +620,7 @@ export class Turtle extends EventEmitter {
             }
         }
 
-        if (this.penDown) this.ctx.stroke();
+        if (this._isPenDown) this.ctx.stroke();
         this.ctx.restore();
         this.saveImageData();
         this.goto(newX, newY);
@@ -653,32 +629,100 @@ export class Turtle extends EventEmitter {
      * Makes the turtle walk forward and draw a line.
      *
      * @param distance The distance in pixels for the turtle to travel.
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     forward(distance: number): Turtle {
-        if (!this.inStep) {
-            this.steps.push({ type: TurtleStepType.Forward, args: [distance] });
-            return this;
-        }
-
-        this.emit('forward', distance);
-        this._doStraightLine(distance);
+        if (this.isInStep) {
+            this._forward(distance);
+            this.emit('forward', distance);
+        } else this._steps.push({ type: TurtleStepType.Forward, args: [distance] });
         return this;
     }
+    private _forward(distance: number): void {
+        this._doStraightLine(distance);
+    }
     /**
-     * Makes the turtle walk backward and draw a line.
+     * Makes the turtle walk forward and draw a line.
      *
      * @param distance The distance in pixels for the turtle to travel.
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     backward(distance: number): Turtle {
-        if (!this.inStep) {
-            this.steps.push({ type: TurtleStepType.Backward, args: [distance] });
-            return this;
+        if (this.isInStep) {
+            this._backward(distance);
+            this.emit('backward', distance);
+        } else this._steps.push({ type: TurtleStepType.Backward, args: [distance] });
+        return this;
+    }
+    private _backward(distance: number): void {
+        this._doStraightLine(-distance);
+    }
+
+    //! helper methods
+    /**
+     * Draws the turtle (The arrow).
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    drawTurtle(): Turtle {
+        this.saveImageData();
+        if (this._hidden) return this;
+
+        const proportionalSize = Math.max(this._width / 2, 1) * this._turtleSizeModifier;
+
+        const shape = rotateShape(
+            resizeShape(this._shape, proportionalSize),
+            this._angle
+        );
+
+        const x = this._position.x;
+        const y = this._position.y;
+
+        this.ctx.save();
+        centerCoordinates(this.ctx);
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+
+        for (let i = 0; i < shape.length; i++) {
+            const vertex = shape[i];
+            if (vertex) this.ctx.lineTo(x + vertex.x, y + vertex.y);
         }
 
-        this.emit('backward', distance);
-        this._doStraightLine(-distance);
+        this.ctx.closePath();
+
+        this.ctx.fillStyle = this._color.toHex();
+        this.ctx.fill();
+        this.ctx.lineWidth = Math.max(this._width / 4, 1);
+        this.ctx.strokeStyle = 'black';
+        this.ctx.stroke();
+        this.ctx.restore();
+        return this;
+    }
+
+    /**
+     * Saves the current image into {@link Turtle._preDrawData}.
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    saveImageData(): Turtle {
+        this._preDrawData = this.ctx.getImageData(
+            0,
+            0,
+            this.ctx.canvas.width,
+            this.ctx.canvas.height
+        );
+
+        return this;
+    }
+
+    /**
+     * Restores the image from {@link Turtle._preDrawData}.
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    restoreImageData(): Turtle {
+        if (this._preDrawData) this.ctx.putImageData(this._preDrawData, 0, 0);
         return this;
     }
 
@@ -686,18 +730,18 @@ export class Turtle extends EventEmitter {
      * Draws a grid on the Canvas. Pretty useful to be precise.
      *
      * @param separations The number of separations on the grid.
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     drawGrid(separations: number): Turtle {
         // Make it minimum 2
         separations = Math.max(2, separations);
 
-        this.step = true;
-        const oldAngle = this.angle;
-        const oldColor = this.color;
-        const oldWidth = this.width;
-        const oldX = this.position.x;
-        const oldY = this.position.y;
+        this._step = true;
+        const oldAngle = this._angle;
+        const oldColor = this._color;
+        const oldWidth = this._width;
+        const oldX = this._position.x;
+        const oldY = this._position.y;
         const w = this.ctx.canvas.width;
         const h = this.ctx.canvas.height;
 
@@ -718,8 +762,11 @@ export class Turtle extends EventEmitter {
         this.setWidth(oldWidth);
         this.goto(oldX, oldY);
         this.ctx.restore();
-        this.step = false;
+        this._step = false;
         return this;
+    }
+    private set _lineCap(cap: CanvasLineCap) {
+        this.ctx.lineCap = cap;
     }
 
     /**
@@ -729,17 +776,18 @@ export class Turtle extends EventEmitter {
      *
      * @param obj Any JavaScript Object
      * @param remap A remap object to remap method's names
-     * @returns {Turtle} For method chaining.
+     * @returns {Turtle} `Turtle` for method chaining.
      */
     expose(obj: any, remap?: ExposeRemap): Turtle {
         obj[remap?.forward ?? 'forward'] = this.forward.bind(this);
+        obj[remap?.backward ?? 'backward'] = this.backward.bind(this);
         obj[remap?.left ?? 'left'] = this.left.bind(this);
         obj[remap?.right ?? 'right'] = this.right.bind(this);
         obj[remap?.setAngle ?? 'setAngle'] = this.setAngle.bind(this);
         obj[remap?.hide ?? 'hide'] = this.hide.bind(this);
         obj[remap?.show ?? 'show'] = this.show.bind(this);
-        obj[remap?.putPenUp ?? 'putPenUp'] = this.putPenUp.bind(this);
-        obj[remap?.putPenDown ?? 'putPenDown'] = this.putPenDown.bind(this);
+        obj[remap?.penUp ?? 'penUp'] = this.penUp.bind(this);
+        obj[remap?.penDown ?? 'penDown'] = this.penDown.bind(this);
         obj[remap?.reset ?? 'reset'] = this.reset.bind(this);
         obj[remap?.clear ?? 'clear'] = this.clear.bind(this);
         obj[remap?.goto ?? 'goto'] = this.goto.bind(this);
@@ -754,20 +802,38 @@ export class Turtle extends EventEmitter {
     constructor(context: CanvasRenderingContext2D, options?: TurtleOptions) {
         super();
         this.ctx = context;
-        this.lineCap = 'round';
+        this._lineCap = 'round';
 
-        if (options?.hidden) this.hidden = options.hidden;
-        if (options?.disableWrapping) this.wrap = false;
-        if (options?.defaultColor) {
-            this.defaultColor = convertToColor(options.defaultColor)
-            this.color = this.defaultColor;
+        if (options?.hidden) {
+            this._hidden = options.hidden;
         }
-        if (options?.width) this.width = options.width;
-        if (options?.startPostition) this.position = options.startPostition;
-        if (options?.startAngle) this.angle = options.startAngle;
-        if (options?.shape) this.shape = options.shape;
-        if (options?.lineCap) this.lineCap = options.lineCap;
-        if (options?.turtleSizeModifier) this.turtleSizeModifier = options.turtleSizeModifier;
-        if (options?.autoDraw) this.draw();
+        if (options?.disableWrapping) {
+            this._wrap = false;
+        }
+        if (options?.defaultColor) {
+            this._defaultColor = convertToColor(options.defaultColor)
+            this._color = this._defaultColor;
+        }
+        if (options?.width) {
+            this._width = options.width;
+        }
+        if (options?.startPostition) {
+            this._position = options.startPostition;
+        }
+        if (options?.startAngle) {
+            this._angle = options.startAngle;
+        }
+        if (options?.shape) {
+            this._shape = options.shape;
+        }
+        if (options?.lineCap) {
+            this._lineCap = options.lineCap;
+        }
+        if (options?.turtleSizeModifier) {
+            this._turtleSizeModifier = options.turtleSizeModifier;
+        }
+        if (options?.autoDraw) {
+            this.drawTurtle();
+        }
     }
 }
