@@ -798,6 +798,19 @@ export class Turtle extends EventEmitter {
         obj[remap?.setLineCap ?? 'setLineCap'] = this.setLineCap.bind(this);
         return this;
     }
+    /**
+     * Expose one of the Turtle's methods onto an object.
+     * This is very useful for example when using it with the `window` object,
+     * abstracting method calls to simple functions calls.
+     *
+     * @param obj Any JavaScript Object
+     * @param method The name of the method to remap.
+     * @param remapName The remapped method's name on the object.
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    exposeSingle(obj: any, method: keyof ExposeRemap, remapName: string) {
+        obj[remapName] = this[method].bind(this);
+    }
 
     constructor(context: CanvasRenderingContext2D, options?: TurtleOptions) {
         super();
