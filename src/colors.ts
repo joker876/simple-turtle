@@ -7,31 +7,36 @@ export class Color {
     /**
      * The `red` component of the color.
      */
-    private r: number = 0;
+    r: number = 0;
 
     /**
      * The `green` component of the color.
      */
-    private g: number = 0;
+    g: number = 0;
 
     /**
      * The `blue` component of the color.
      */
-    private b: number = 0;
+    b: number = 0;
 
     /**
      * The `alpha` component of the color (opacity).
      *
      * Ranges from 0 to 1.
      */
-    private a: number = 1;
+    a: number = 1;
 
     /**
      * Get the RGB value of the color as an array of integers.
      */
-
     get rgb(): [number, number, number] {
         return [this.r, this.g, this.b];
+    }
+    /**
+     * Get the RGBA value of the color as an array of integers, and alpha as a range from 0 to 1.
+     */
+    get rgba(): [number, number, number, number] {
+        return [this.r, this.g, this.b, this.a];
     }
 
     /**
@@ -41,6 +46,15 @@ export class Color {
         this.r = r;
         this.g = g;
         this.b = b;
+    }
+    /**
+     * Set the RGBA value of the color as an array of integers, and alpha as a range from 0 to 1.
+     */
+    set rgba([r, g, b, a]) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
     }
 
     /**
@@ -80,8 +94,26 @@ export class Color {
         return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
     }
 
-    constructor(rgb: [number, number, number]) {
-        this.rgb = rgb;
+    constructor()
+    constructor(rgb: [number, number, number])
+    constructor(rgba: [number, number, number, number])
+    constructor(r: number, g: number, b: number)
+    constructor(r: number, g: number, b: number, a: number)
+    constructor(
+        param1?: number | [number, number, number] | [number, number, number, number],
+        param2?: number,
+        param3?: number,
+        param4?: number,
+    ) {
+        if (Array.isArray(param1)) {
+            if (param1.length == 4) {
+                this.rgba = param1;
+                return;
+            }
+            this.rgb = param1;
+            return;
+        }
+        this.rgba = [param1 ?? 0, param2 ?? 0, param3 ?? 0, param4 ?? 1];
     }
 }
 
