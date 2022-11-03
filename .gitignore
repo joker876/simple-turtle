@@ -10,6 +10,8 @@ dist/index.js
 
 # playground files
 PLAYGROUND
+
+# dist files
 dist/types.js
 dist/html-colors.js
 dist/turtle.js
