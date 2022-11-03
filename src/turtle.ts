@@ -230,6 +230,9 @@ export class Turtle extends EventEmitter {
     get isInStep(): boolean {
         return !this._stepByStep || this._step;
     }
+    private set _lineCap(cap: CanvasLineCap) {
+        this.ctx.lineCap = cap;
+    }
 
     /**
      * Execute a certain step.
@@ -347,7 +350,7 @@ export class Turtle extends EventEmitter {
         this._isPenDown = true;
         this._stepByStep = false;
         this._setWidth(1);
-        this._setColor(this._defaultColor);
+        this._resetColor();
         this._setAngle(0);
         this._goto(0, 0);
         this._clear();
@@ -458,6 +461,9 @@ export class Turtle extends EventEmitter {
         this._color = convertToColor(color);
         this.restoreImageData();
         this.drawTurtle();
+    }
+    private _resetColor() {
+        this._setColor(this._defaultColor);
     }
 
     /**
@@ -658,7 +664,7 @@ export class Turtle extends EventEmitter {
         this._doStraightLine(-distance);
     }
 
-    //! helper methods
+    //* helper methods
     /**
      * Draws the turtle (The arrow).
      *
@@ -727,46 +733,109 @@ export class Turtle extends EventEmitter {
     }
 
     /**
-     * Draws a grid on the Canvas. Pretty useful to be precise.
+     * Draws a grid on the canvas, with each cell being 40x40 pixels.
      *
-     * @param separations The number of separations on the grid.
      * @returns {Turtle} `Turtle` for method chaining.
      */
-    drawGrid(separations: number): Turtle {
-        // Make it minimum 2
-        separations = Math.max(2, separations);
+    drawGrid(): Turtle
+    /**
+     * Draws a grid on the canvas, with each cell being _width_ in pixels.
+     *
+     * @param width The width of each cell of the grid.
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    drawGrid(width: number): Turtle
+    /**
+     * Draws a grid on the canvas, with each cell being _width_ pixels wide and _height_ pixels high.
+     *
+     * @param width The width of each cell of the grid.
+     * @param height The height of each cell of the grid.
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    drawGrid(width: number, height: number): Turtle
+    /**
+     * Draws a grid on the canvas, with each cell being _width_ pixels wide and _height_ pixels high.
+     *
+     * @param width The width of each cell of the grid.
+     * @param height The height of each cell of the grid.
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    drawGrid(width?: number, height?: number): Turtle {
+        //normalize dimensions, and make them minimum 2
+        width = Math.max(width || 40, 2);
+        height = Math.max(height || width, 2);
 
-        this._step = true;
-        const oldAngle = this._angle;
-        const oldColor = this._color;
-        const oldWidth = this._width;
-        const oldX = this._position.x;
-        const oldY = this._position.y;
         const w = this.ctx.canvas.width;
         const h = this.ctx.canvas.height;
+        const wm = w / 2;
+        const hm = h / 2;
+        const mainWidth = 3;
+        const mainWidthFl = Math.floor(mainWidth / 2);
+        const mainWidthCl = Math.ceil(mainWidth / 2);
 
-        this._setColor('grey');
-        this._setWidth(2);
+        //get the required color
+        const oldA = this._color.a;
+        this._color.a = 0.5;
+        /**
+         * Main color. `rgba(x, x, x, 0.5)`
+         */
+        const mainColor = this._color.toRGBA();
+        this._color.a = 0.2;
+        /**
+         * Secondary color. `rgba(x, x, x, 0.25)`
+         */
+        const secColor = this._color.toRGBA();
+        this._color.a = oldA;
 
-        for (let i = 1; i < separations; i++) {
-            this._setAngle(90);
-            this._goto(-(w / 2), h - (h / separations) * i - h / 2);
-            this._forward(w);
-            this._setAngle(180);
-            this._goto(w - (w / separations) * i - w / 2, h / 2);
-            this._forward(h);
+        //draw the thin lines
+        this.ctx.beginPath();
+        let pos = width;
+        while (pos <= wm) {
+            this.ctx.moveTo(wm + pos, 0);
+            this.ctx.lineTo(wm + pos, hm - mainWidthCl);
+            this.ctx.moveTo(wm - pos, 0);
+            this.ctx.lineTo(wm - pos, hm - mainWidthCl);
+            this.ctx.moveTo(wm + pos, h);
+            this.ctx.lineTo(wm + pos, hm + mainWidthFl);
+            this.ctx.moveTo(wm - pos, h);
+            this.ctx.lineTo(wm - pos, hm + mainWidthFl);
+            pos += width;
         }
+        pos = height;
+        while (pos <= hm) {
+            this.ctx.moveTo(0, hm + pos);
+            this.ctx.lineTo(wm - mainWidthCl, hm + pos);
+            this.ctx.moveTo(0, hm - pos);
+            this.ctx.lineTo(wm - mainWidthCl, hm - pos);
+            this.ctx.moveTo(w, hm + pos);
+            this.ctx.lineTo(wm + mainWidthFl, hm + pos);
+            this.ctx.moveTo(w, hm - pos);
+            this.ctx.lineTo(wm + mainWidthFl, hm - pos);
+            pos += height;
+        }
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = secColor;
+        this.ctx.stroke();
+        this.ctx.closePath();
 
-        this._setAngle(oldAngle);
-        this._setColor(oldColor);
-        this._setWidth(oldWidth);
-        this._goto(oldX, oldY);
-        this.ctx.restore();
-        this._step = false;
+        //* draw the two main lines
+        this.ctx.beginPath();
+        //draw vertical line
+        this.ctx.moveTo(w / 2 - 1, 0);
+        this.ctx.lineTo(w / 2 - 1, h);
+        //draw left half of the horizontal line
+        this.ctx.moveTo(0, h / 2 - mainWidthFl);
+        this.ctx.lineTo(wm - mainWidthCl, h / 2 - mainWidthFl);
+        //draw right half of the horizontal line
+        this.ctx.moveTo(wm + mainWidthFl, h / 2 - mainWidthFl);
+        this.ctx.lineTo(w, h / 2 - mainWidthFl);
+        //stroke the lines
+        this.ctx.lineWidth = mainWidth;
+        this.ctx.strokeStyle = mainColor;
+        this.ctx.stroke();
+        this.ctx.closePath();
+
         return this;
-    }
-    private set _lineCap(cap: CanvasLineCap) {
-        this.ctx.lineCap = cap;
     }
 
     /**
