@@ -765,6 +765,9 @@ export class Turtle extends EventEmitter {
         width = Math.max(width || 40, 2);
         height = Math.max(height || width, 2);
 
+        this.restoreImageData();
+        this.ctx.save();
+
         const w = this.ctx.canvas.width;
         const h = this.ctx.canvas.height;
         const wm = w / 2;
@@ -834,6 +837,9 @@ export class Turtle extends EventEmitter {
         this.ctx.strokeStyle = mainColor;
         this.ctx.stroke();
         this.ctx.closePath();
+
+        this.ctx.restore();
+        this.saveImageData();
 
         return this;
     }
