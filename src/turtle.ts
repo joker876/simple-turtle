@@ -549,7 +549,7 @@ export class Turtle extends EventEmitter {
         return this;
     }
     private _right(degrees: number): void {
-        this._angle -= degrees;
+        this._angle += degrees;
         this.restoreImageData();
         this.drawTurtle();
     }
