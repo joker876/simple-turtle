@@ -847,7 +847,37 @@ export class Turtle extends EventEmitter {
      * @param remap A remap object to remap method's names
      * @returns {Turtle} `Turtle` for method chaining.
      */
-    expose(obj: any, remap?: ExposeRemap): Turtle {
+    expose(obj: any, remap?: ExposeRemap): Turtle
+    /**
+     * Expose the Turtle's methods onto an object.
+     * This is very useful for example when using it with the `window` object,
+     * abstracting method calls to simple functions calls.
+     *
+     * @param obj Any JavaScript Object
+     * @param remap A remap object to remap method's names
+     * @param onlyExposeSpecified Whether to only export methods specified in `remap`. Defaults to `false`.
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    expose(obj: any, remap: ExposeRemap, onlyExposeSpecified?: boolean): Turtle
+    /**
+     * Expose the Turtle's methods onto an object.
+     * This is very useful for example when using it with the `window` object,
+     * abstracting method calls to simple functions calls.
+     *
+     * @param obj Any JavaScript Object
+     * @param remap A remap object to remap method's names
+     * @param onlyExposeSpecified Whether to only export methods specified in `remap`. Defaults to `false`.
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    expose(obj: any, remap?: ExposeRemap, onlyExposeSpecified: boolean = false): Turtle {
+        if (onlyExposeSpecified && remap && Object.keys(remap).length) {
+            for (const key in remap) {
+                const method = key as keyof ExposeRemap;
+                const value = remap[method] as string;
+                obj[value] = this[method].bind(this);
+            }
+            return this;
+        }
         obj[remap?.forward ?? 'forward'] = this.forward.bind(this);
         obj[remap?.backward ?? 'backward'] = this.backward.bind(this);
         obj[remap?.left ?? 'left'] = this.left.bind(this);
@@ -866,19 +896,6 @@ export class Turtle extends EventEmitter {
         obj[remap?.setSpeed ?? 'setSpeed'] = this.setSpeed.bind(this);
         obj[remap?.setLineCap ?? 'setLineCap'] = this.setLineCap.bind(this);
         return this;
-    }
-    /**
-     * Expose one of the Turtle's methods onto an object.
-     * This is very useful for example when using it with the `window` object,
-     * abstracting method calls to simple functions calls.
-     *
-     * @param obj Any JavaScript Object
-     * @param method The name of the method to remap.
-     * @param remapName The remapped method's name on the object.
-     * @returns {Turtle} `Turtle` for method chaining.
-     */
-    exposeSingle(obj: any, method: keyof ExposeRemap, remapName: string) {
-        obj[remapName] = this[method].bind(this);
     }
 
     constructor(context: CanvasRenderingContext2D, options?: TurtleOptions) {
