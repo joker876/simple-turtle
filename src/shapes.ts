@@ -2,15 +2,15 @@ export type Vertex2D = { x: number; y: number };
 
 const defaultShape: Vertex2D[] = [
     { x: 0, y: 0 },
-    { x: 3, y: -3 },
-    { x: 0, y: 6 },
-    { x: -3, y: -3 },
+    { x: 9, y: -9 },
+    { x: 0, y: 18 },
+    { x: -9, y: -9 },
 ];
 
 const triangleShape: Vertex2D[] = [
-    { x: 3, y: 0 },
-    { x: 0, y: 6 },
-    { x: -3, y: 0 },
+    { x: 9, y: 0 },
+    { x: 0, y: 18 },
+    { x: -9, y: 0 },
 ];
 
 export const BuiltInShapes = {
