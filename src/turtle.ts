@@ -354,6 +354,7 @@ export class Turtle extends EventEmitter {
         this._setAngle(0);
         this._goto(0, 0);
         this._clear();
+        this.saveImageData();
     }
 
     /**
@@ -840,6 +841,8 @@ export class Turtle extends EventEmitter {
 
         this.ctx.restore();
         this.saveImageData();
+
+        this.drawTurtle();
 
         return this;
     }
