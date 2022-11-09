@@ -118,8 +118,9 @@ export interface TurtleOptions {
     turtleSizeModifier?: number;
 
     /**
-     * If the turtle should automatically draw on creation.
-     *
+     * If the turtle should automatically start drawing when the speed is set.
+     * 
+     * If set to _false_, use the {@link Turtle.startDrawing} method to start drawing.
      * @default true
      */
     autoDraw?: boolean;
@@ -188,7 +189,12 @@ export class Turtle extends EventEmitter {
     /**
      * The timer identifier for the step interval.
      */
-    private _interval?: NodeJS.Timer;
+    private _interval: NodeJS.Timer | null = null;
+
+    /**
+     * Whether the turtle, when a speed is set, should automatically start drawing the next steps.
+     */
+    private _autoDraw: boolean = true;
 
     /**
      * The Color object representing the current color of the turtle.
@@ -272,10 +278,7 @@ export class Turtle extends EventEmitter {
             this._step = true;
             this.doStep(step);
             this._step = false;
-        } else if (this._interval) {
-            clearInterval(this._interval);
-            this._interval = undefined;
-        }
+        } else if (this._interval) this.stopDrawing();
 
         return this;
     }
@@ -403,9 +406,31 @@ export class Turtle extends EventEmitter {
     private _setSpeed(ms: number): void {
         this._stepByStep = ms > 0;
         this._speed = ms;
+        this.stopDrawing();
+        if (this._autoDraw) {
+            this.startDrawing();
+        }
+    }
 
-        if (this._interval) clearInterval(this._interval);
-
+    /**
+     * Starts the turtle drawing interval.
+     * 
+     * Only has effect if the speed is set.
+     * @returns void
+     */
+    stopDrawing(): void {
+        if (!this._interval) return;
+        clearInterval(this._interval);
+        this._interval = null;
+    }
+    /**
+     * Stops the turtle drawing interval.
+     * 
+     * Only has effect if the speed is set.
+     * @returns void
+     */
+    startDrawing(): void {
+        if (this._interval) return;
         this._interval = setInterval(this.nextStep.bind(this), this._speed);
     }
 
@@ -953,7 +978,8 @@ export class Turtle extends EventEmitter {
             this._turtleSizeModifier = options.turtleSizeModifier;
         }
         if (options?.autoDraw) {
-            this.drawTurtle();
+            this._autoDraw = options.autoDraw;
         }
+        this.drawTurtle();
     }
 }
