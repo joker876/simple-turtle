@@ -334,7 +334,10 @@ export class Turtle extends EventEmitter {
     }
 
     /**
-     * Reset the turtle and the canvas without accounting for the drawing speed.
+     * Reset the turtle and the canvas instantly without accounting for the drawing speed.
+     * 
+     * __WARNING__: may interfere with other methods scheduled to execute,
+    and may have unexepected and sometimes inconsistent results. Use with caution!
      *
      * @returns {Turtle} `Turtle` for method chaining.
      */
