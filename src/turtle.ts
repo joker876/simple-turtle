@@ -334,6 +334,15 @@ export class Turtle extends EventEmitter {
     }
 
     /**
+     * Reset the turtle and the canvas without accounting for the drawing speed.
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    instantReset(): Turtle {
+        this._reset();
+        return this;
+    }
+    /**
      * Reset the turtle and the canvas.
      *
      * @returns {Turtle} `Turtle` for method chaining.
