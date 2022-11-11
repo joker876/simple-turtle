@@ -56,7 +56,7 @@ export interface ExposeRemap {
  */
 export interface TurtleOptions {
     /**
-     * Wether the turtle should be hidden.
+     * Whether the turtle should be hidden.
      *
      * @default false
      */
@@ -124,6 +124,13 @@ export interface TurtleOptions {
      * @default true
      */
     autoDraw?: boolean;
+
+    /**
+     * Whether to automatically draw the turtle on canvas initialization.
+     * 
+     * @default true
+     */
+    drawTurtleOnInit: boolean;
 }
 
 export interface Turtle {
@@ -978,6 +985,8 @@ export class Turtle extends EventEmitter {
         if (options?.autoDraw) {
             this._autoDraw = options.autoDraw;
         }
-        this.drawTurtle();
+        if (options?.drawTurtleOnInit ?? true) {
+            this.drawTurtle();
+        }
     }
 }
