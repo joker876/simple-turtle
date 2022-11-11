@@ -14,6 +14,7 @@ export enum TurtleStepType {
     Show,
     PenUp,
     PenDown,
+    PenToggle,
     Reset,
     Clear,
     Goto,
@@ -60,6 +61,9 @@ export type TurtleStep =
     }
     | {
         type: TurtleStepType.PenUp;
+    }
+    | {
+        type: TurtleStepType.PenToggle;
     }
     | {
         type: TurtleStepType.Reset;

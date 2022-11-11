@@ -505,7 +505,7 @@ export class Turtle extends EventEmitter {
         if (this.isInStep) {
             this._penToggle();
             this.emit('penToggle', this._isPenDown);
-        } else this._stepsQueue.push({ type: TurtleStepType.PenDown });
+        } else this._stepsQueue.push({ type: TurtleStepType.PenToggle });
         return this;
     }
     protected _penToggle(): void {
