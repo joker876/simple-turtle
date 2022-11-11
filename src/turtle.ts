@@ -153,81 +153,81 @@ export class Turtle extends EventEmitter {
     /**
      * Wether or not the turtle is hidden.
      */
-    private _hidden: boolean = false;
+    protected _hidden: boolean = false;
 
     /**
      * Wether or not to wrap the turtle around the canvas.
      * The turtle goes around when overflowing.
      */
-    private _wrap: boolean = true;
+    protected _wrap: boolean = true;
 
     /**
      * Determines if the turtle draws on the canvas or not.
      */
-    private _isPenDown: boolean = true;
+    protected _isPenDown: boolean = true;
 
     /**
      * Canvas Image data before drawing the turtle.
      */
-    private _preDrawData?: ImageData;
+    protected _preDrawData?: ImageData;
 
     /**
      * Wether or not the Turtle is in Step by Step mode.
      * Enabled using {@link Turtle.setSpeed}.
      */
-    private _stepByStep: boolean = false;
+    protected _stepByStep: boolean = false;
 
     /**
      * Whether or not the Turtle is currently perfoming a step.
      * Use {@link Turtle.isInStep} instead.
      */
-    private _step: boolean = false;
+    protected _isDoingStep: boolean = false;
 
     /**
      * The queue of steps do execute.
      */
-    private _steps: TurtleStep[] = [];
+    protected _steps: TurtleStep[] = [];
 
     /**
      * The delay in ms between each steps.
      */
-    private _speed?: number;
+    protected _speed?: number;
 
     /**
      * The timer identifier for the step interval.
      */
-    private _interval: NodeJS.Timer | null = null;
+    protected _stepsInterval: NodeJS.Timer | null = null;
 
     /**
      * Whether the turtle, when a speed is set, should automatically start drawing the next steps.
      */
-    private _autoDraw: boolean = true;
+    protected _autoDraw: boolean = true;
 
     /**
      * The Color object representing the current color of the turtle.
      */
-    private _color: Color = new Color([255, 0, 255]);
-    private _defaultColor: Color = new Color([255, 0, 255]);
+    protected _color: Color = new Color([255, 0, 255]);
+    protected _defaultColor: Color = new Color([255, 0, 255]);
 
     /**
      * The current width of the turtle's drawing.
      */
-    private _width: number = 1;
+    protected _width: number = 1;
 
     /**
      * The size modifier of the turtle.
      */
-    private readonly _turtleSizeModifier: number = 1;
+    protected _turtleSizeModifier: number = 1;
 
     /**
      * The current X/Y position of the turtle on the canvas.
      */
-    private _position: Vertex2D = { x: 0, y: 0 };
+    protected _position: Vertex2D = { x: 0, y: 0 };
 
     /**
      * The current angle of the turtle.
      */
-    private _angle: number = 0;
+    protected _angle: number = 0;
 
     /**
      * The shape of the turtle which is drawn with the `.draw` method.
@@ -235,15 +235,15 @@ export class Turtle extends EventEmitter {
      * Represented by an array of 2D vertices (X/Y coordinates) defining
      * the boundaries of the shape.
      */
-    private _shape: Vertex2D[] = BuiltInShapes.Default;
+    protected _shape: Vertex2D[] = BuiltInShapes.Default;
     
     /**
      * Wether or not the turtle is doing a step.
      */
     get isInStep(): boolean {
-        return !this._stepByStep || this._step;
+        return !this._stepByStep || this._isDoingStep;
     }
-    private set _lineCap(cap: CanvasLineCap) {
+    protected set _lineCap(cap: CanvasLineCap) {
         this.ctx.lineCap = cap;
     }
 
@@ -282,10 +282,10 @@ export class Turtle extends EventEmitter {
     private nextStep(): Turtle {
         const step = this._steps.shift();
         if (step) {
-            this._step = true;
+            this._isDoingStep = true;
             this.doStep(step);
-            this._step = false;
-        } else if (this._interval) this.stopDrawing();
+            this._isDoingStep = false;
+        } else if (this._stepsInterval) this.stopDrawing();
 
         return this;
     }
@@ -314,7 +314,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Reset });
         return this;
     }
-    private _reset() {
+    protected _reset() {
         this._hidden = false;
         this._isPenDown = true;
         this._stepByStep = false;
@@ -338,7 +338,7 @@ export class Turtle extends EventEmitter {
 
         return this;
     }
-    private _clear() {
+    protected _clear() {
         clearContext(this.ctx);
         this.drawTurtle();
     }
@@ -367,7 +367,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Hide });
         return this;
     }
-    private _hide() {
+    protected _hide() {
         this._hidden = true;
         this.restoreImageData();
     }
@@ -396,7 +396,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Show });
         return this;
     }
-    private _show() {
+    protected _show() {
         this._hidden = false;
         this.drawTurtle();
     }
@@ -414,7 +414,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.SetShape, args: [shape] });
         return this;
     }
-    private _setShape(shape: Vertex2D[]): void {
+    protected _setShape(shape: Vertex2D[]): void {
         this._shape = shape;
         this.drawTurtle();
     }
@@ -432,7 +432,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.SetSpeed, args: [ms] });
         return this;
     }
-    private _setSpeed(ms: number): void {
+    protected _setSpeed(ms: number): void {
         this._stepByStep = ms > 0;
         this._speed = ms;
         this.stopDrawing();
@@ -448,9 +448,9 @@ export class Turtle extends EventEmitter {
      * @returns void
      */
     stopDrawing(): void {
-        if (!this._interval) return;
-        clearInterval(this._interval);
-        this._interval = null;
+        if (!this._stepsInterval) return;
+        clearInterval(this._stepsInterval);
+        this._stepsInterval = null;
     }
     /**
      * Stops the turtle drawing interval.
@@ -459,8 +459,8 @@ export class Turtle extends EventEmitter {
      * @returns void
      */
     startDrawing(): void {
-        if (this._interval) return;
-        this._interval = setInterval(this.nextStep.bind(this), this._speed);
+        if (this._stepsInterval) return;
+        this._stepsInterval = setInterval(this.nextStep.bind(this), this._speed);
     }
 
     /**
@@ -475,7 +475,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.PenUp });
         return this;
     }
-    private _penUp(): void {
+    protected _penUp(): void {
         this._isPenDown = false;
     }
 
@@ -491,7 +491,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.PenDown });
         return this;
     }
-    private _penDown(): void {
+    protected _penDown(): void {
         this._isPenDown = true;
     }
 
@@ -507,7 +507,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.PenDown });
         return this;
     }
-    private _penToggle(): void {
+    protected _penToggle(): void {
         this._isPenDown = !this._isPenDown;
     }
 
@@ -524,12 +524,12 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.SetColor, args: [color] });
         return this;
     }
-    private _setColor(color: ColorResolvable): void {
+    protected _setColor(color: ColorResolvable): void {
         this._color = convertToColor(color);
         this.restoreImageData();
         this.drawTurtle();
     }
-    private _resetColor() {
+    protected _resetColor() {
         this._setColor(this._defaultColor);
     }
 
@@ -545,7 +545,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.SetWidth, args: [size] });
         return this;
     }
-    private _setWidth(size: number): void {
+    protected _setWidth(size: number): void {
         this._width = size;
         this.restoreImageData();
         this.drawTurtle();
@@ -563,7 +563,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.SetLineCap, args: [cap] });
         return this;
     }
-    private _setLineCap(cap: CanvasLineCap): void {
+    protected _setLineCap(cap: CanvasLineCap): void {
         this._lineCap = cap;
     }
 
@@ -579,7 +579,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.SetAngle, args: [degrees] });
         return this;
     }
-    private _setAngle(degrees: number): void {
+    protected _setAngle(degrees: number): void {
         this._angle = degrees;
         this.restoreImageData();
         this.drawTurtle();
@@ -597,7 +597,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Left, args: [degrees] });
         return this;
     }
-    private _left(degrees: number): void {
+    protected _left(degrees: number): void {
         this._angle -= degrees;
         this.restoreImageData();
         this.drawTurtle();
@@ -615,7 +615,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Right, args: [degrees] });
         return this;
     }
-    private _right(degrees: number): void {
+    protected _right(degrees: number): void {
         this._angle += degrees;
         this.restoreImageData();
         this.drawTurtle();
@@ -633,7 +633,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Goto, args: [x, y] });
         return this;
     }
-    private _goto(x: number, y: number): void {
+    protected _goto(x: number, y: number): void {
         this._position.x = x;
         this._position.y = y;
         this.restoreImageData();
@@ -711,7 +711,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Forward, args: [distance] });
         return this;
     }
-    private _forward(distance: number): void {
+    protected _forward(distance: number): void {
         this._doStraightLine(distance);
     }
     /**
@@ -727,7 +727,7 @@ export class Turtle extends EventEmitter {
         } else this._steps.push({ type: TurtleStepType.Backward, args: [distance] });
         return this;
     }
-    private _backward(distance: number): void {
+    protected _backward(distance: number): void {
         this._doStraightLine(-distance);
     }
 
