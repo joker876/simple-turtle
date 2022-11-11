@@ -879,8 +879,6 @@ export class Turtle extends EventEmitter {
         this.ctx.restore();
         this.saveImageData();
 
-        this.drawTurtle();
-
         return this;
     }
 
