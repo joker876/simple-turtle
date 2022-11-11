@@ -309,6 +309,18 @@ export class Turtle extends EventEmitter {
     }
 
     /**
+     * Hide the turtle instantly without accounting for the drawing speed.
+     * 
+     * __WARNING__: may interfere with other methods scheduled to execute,
+    and may have unexepected and sometimes inconsistent results. Use with caution!
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    instantHide(): Turtle {
+        this._hide();
+        return this;
+    }
+    /**
      * Hide the turtle.
      *
      * @returns {Turtle} `Turtle` for method chaining.
@@ -325,6 +337,18 @@ export class Turtle extends EventEmitter {
         this.restoreImageData();
     }
 
+    /**
+     * Show the turtle instantly without accounting for the drawing speed.
+     * 
+     * __WARNING__: may interfere with other methods scheduled to execute,
+    and may have unexepected and sometimes inconsistent results. Use with caution!
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    instantShow(): Turtle {
+        this._show();
+        return this;
+    }
     /**
      * Show the turtle.
      *
