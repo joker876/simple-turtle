@@ -323,7 +323,6 @@ export class Turtle extends EventEmitter {
     private _hide() {
         this._hidden = true;
         this.restoreImageData();
-        this.drawTurtle();
     }
 
     /**
