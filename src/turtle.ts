@@ -291,6 +291,41 @@ export class Turtle extends EventEmitter {
     }
 
     /**
+     * Reset the turtle and the canvas instantly without accounting for the drawing speed.
+     * 
+     * __WARNING__: may interfere with other methods scheduled to execute,
+    and may have unexepected and sometimes inconsistent results. Use with caution!
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    instantReset(): Turtle {
+        this._reset();
+        return this;
+    }
+    /**
+     * Reset the turtle and the canvas.
+     *
+     * @returns {Turtle} `Turtle` for method chaining.
+     */
+    reset(): Turtle {
+        if (this.isInStep) {
+            this._reset();
+            this.emit('reset');
+        } else this._steps.push({ type: TurtleStepType.Reset });
+        return this;
+    }
+    private _reset() {
+        this._hidden = false;
+        this._isPenDown = true;
+        this._stepByStep = false;
+        this._setWidth(1);
+        this._resetColor();
+        this._setAngle(0);
+        this._goto(0, 0);
+        this._clear();
+    }
+
+    /**
      * Wipes out the canvas.
      *
      * @returns {Turtle} `Turtle` for method chaining.
@@ -364,41 +399,6 @@ export class Turtle extends EventEmitter {
     private _show() {
         this._hidden = false;
         this.drawTurtle();
-    }
-
-    /**
-     * Reset the turtle and the canvas instantly without accounting for the drawing speed.
-     * 
-     * __WARNING__: may interfere with other methods scheduled to execute,
-    and may have unexepected and sometimes inconsistent results. Use with caution!
-     *
-     * @returns {Turtle} `Turtle` for method chaining.
-     */
-    instantReset(): Turtle {
-        this._reset();
-        return this;
-    }
-    /**
-     * Reset the turtle and the canvas.
-     *
-     * @returns {Turtle} `Turtle` for method chaining.
-     */
-    reset(): Turtle {
-        if (this.isInStep) {
-            this._reset();
-            this.emit('reset');
-        } else this._steps.push({ type: TurtleStepType.Reset });
-        return this;
-    }
-    private _reset() {
-        this._hidden = false;
-        this._isPenDown = true;
-        this._stepByStep = false;
-        this._setWidth(1);
-        this._resetColor();
-        this._setAngle(0);
-        this._goto(0, 0);
-        this._clear();
     }
 
     /**
