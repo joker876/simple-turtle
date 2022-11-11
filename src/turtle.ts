@@ -130,7 +130,7 @@ export interface TurtleOptions {
      * 
      * @default true
      */
-    drawTurtleOnInit: boolean;
+    drawTurtleOnInit?: boolean;
 }
 
 export interface Turtle {
