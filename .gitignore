@@ -1,5 +1,6 @@
 # folders
 node_modules
+dist
 
 # files
 package-lock.json
@@ -10,11 +11,3 @@ dist/index.js
 
 # playground files
 PLAYGROUND
-
-# dist files
-dist/types.js
-dist/html-colors.js
-dist/turtle.js
-dist/colors.js
-dist/shapes.js
-dist/steps.js

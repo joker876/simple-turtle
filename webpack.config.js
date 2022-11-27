@@ -5,7 +5,7 @@ module.exports = {
     mode: 'production',
     output: {
         filename: 'simple-turtle.min.js',
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'dist/browser'),
         library: 'SimpleTurtle',
         libraryTarget: 'umd',
         umdNamedDefine: true,
