@@ -4,9 +4,12 @@ docs
 # Ignore Typescript source
 src
 examples
+spec
+PLAYGROUND
 
 # Ignore config files
 *.config.*
+tsconfig.json
 
 # Ignore .min files
 *.min.*
