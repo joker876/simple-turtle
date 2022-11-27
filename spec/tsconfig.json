@@ -1,0 +1,12 @@
+{
+    "extends": "../tsconfig.json",
+    "include": [
+        "./*.ts",
+        "./**/*.ts"
+    ],
+    "compilerOptions": {
+        "outDir": "../dist/spec/",
+        "rootDir": "../",
+        "module": "commonjs"
+    }
+}
